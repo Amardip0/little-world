@@ -6,9 +6,11 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import multer from "multer";
+import { v2 as cloudinary } from "cloudinary";
 import { fileURLToPath } from "node:url";
 import seed from "./seed.json" with { type: "json" };
 
+// Force production mode when Render start command includes --production
 if (process.argv.includes("--production")) {
   process.env.NODE_ENV = "production";
 }
@@ -20,18 +22,38 @@ const app = express();
 const PORT = Number(process.env.PORT || process.env.API_PORT || 4000);
 const isProduction = process.env.NODE_ENV === "production";
 
+// --------------------------------------------------
+// CLOUDINARY CONFIGURATION
+// --------------------------------------------------
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true,
+});
+
+const cloudinaryReady = [
+  "CLOUDINARY_CLOUD_NAME",
+  "CLOUDINARY_API_KEY",
+  "CLOUDINARY_API_SECRET",
+].every((key) => Boolean(process.env[key]));
+
 app.disable("x-powered-by");
 
-// Render runs behind a reverse proxy.
 if (isProduction) {
   app.set("trust proxy", 1);
 }
 
-// Security headers
+// --------------------------------------------------
+// SECURITY HEADERS
+// --------------------------------------------------
+
 app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+
   res.setHeader(
     "Permissions-Policy",
     "camera=(), microphone=(), geolocation=()",
@@ -47,7 +69,10 @@ app.use((req, res, next) => {
   next();
 });
 
-// Rate limiter
+// --------------------------------------------------
+// RATE LIMITER
+// --------------------------------------------------
+
 const rateBuckets = new Map();
 
 function rateLimit({
@@ -84,7 +109,10 @@ function rateLimit({
   };
 }
 
-// Normalize configured origins
+// --------------------------------------------------
+// ORIGIN VALIDATION
+// --------------------------------------------------
+
 function getAllowedOrigins() {
   return new Set(
     (process.env.FRONTEND_ORIGIN || "")
@@ -100,7 +128,6 @@ function getAllowedOrigins() {
   );
 }
 
-// Same-origin protection
 function sameOrigin(req, res, next) {
   const origin = req.get("origin");
 
@@ -111,8 +138,6 @@ function sameOrigin(req, res, next) {
   try {
     const parsedOrigin = new URL(origin);
 
-    // Production: allow same-host HTTPS requests.
-    // This supports the Render service serving both React and Express.
     if (
       isProduction &&
       parsedOrigin.protocol === "https:" &&
@@ -123,7 +148,6 @@ function sameOrigin(req, res, next) {
 
     const allowedOrigins = getAllowedOrigins();
 
-    // Local development
     if (!isProduction) {
       allowedOrigins.add("http://localhost:5173");
       allowedOrigins.add("http://127.0.0.1:5173");
@@ -149,127 +173,13 @@ function sameOrigin(req, res, next) {
   }
 }
 
-// Session configuration
+// --------------------------------------------------
+// SESSION CONFIGURATION
+// --------------------------------------------------
+
 const COOKIE = "nidhi_owner";
 const SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || "";
 
-// Upload directory
-const uploadDir = path.join(root, "public", "uploads");
-await fs.mkdir(uploadDir, { recursive: true });
-
-// Middleware
-app.use(express.json({ limit: "1mb" }));
-
-app.use("/api", (req, res, next) => {
-  res.setHeader("Cache-Control", "no-store");
-  next();
-});
-
-app.use("/api", rateLimit({ windowMs: 60000, max: 180 }));
-
-app.use(
-  "/uploads",
-  express.static(uploadDir, {
-    maxAge: "7d",
-    setHeaders(res) {
-      res.setHeader("X-Content-Type-Options", "nosniff");
-    },
-  }),
-);
-
-// MongoDB
-let dbPromise;
-
-async function connectDB() {
-  if (!process.env.MONGODB_URI) {
-    throw new Error("MONGODB_URI is missing. Add it to environment variables.");
-  }
-
-  if (mongoose.connection.readyState === 1) {
-    return;
-  }
-
-  if (!dbPromise) {
-    dbPromise = mongoose
-      .connect(process.env.MONGODB_URI, {
-        serverSelectionTimeoutMS: 7000,
-        maxPoolSize: 20,
-        minPoolSize: 2,
-        maxIdleTimeMS: 30000,
-        retryWrites: true,
-      })
-      .catch((err) => {
-        dbPromise = null;
-        throw err;
-      });
-  }
-
-  await dbPromise;
-}
-
-// Content model
-const Content =
-  mongoose.models.NidhiContent ||
-  mongoose.model(
-    "NidhiContent",
-    new mongoose.Schema(
-      {
-        key: { type: String, unique: true },
-        value: mongoose.Schema.Types.Mixed,
-      },
-      { timestamps: true },
-    ),
-  );
-
-// Analytics model
-const eventSchema = new mongoose.Schema(
-  {
-    day: String,
-    type: String,
-    key: String,
-    count: { type: Number, default: 0 },
-  },
-  { versionKey: false },
-);
-
-eventSchema.index({ day: 1, type: 1, key: 1 }, { unique: true });
-
-eventSchema.index({ day: -1 });
-
-const Event =
-  mongoose.models.NidhiEvent || mongoose.model("NidhiEvent", eventSchema);
-
-// Get website content
-async function getContent() {
-  await connectDB();
-
-  let doc = await Content.findOne({ key: "public" }).lean();
-
-  if (!doc) {
-    doc = await Content.create({
-      key: "public",
-      value: seed,
-    });
-
-    return doc.value;
-  }
-
-  const saved = doc.value || {};
-
-  return {
-    ...seed,
-    ...saved,
-    copy: {
-      ...(seed.copy || {}),
-      ...(saved.copy || {}),
-    },
-    qualities: saved.qualities || seed.qualities,
-    pollOptions: saved.pollOptions || seed.pollOptions,
-    keepsakeDetails: saved.keepsakeDetails || seed.keepsakeDetails,
-  };
-}
-
-// Signed session
 function signed(payload) {
   return crypto
     .createHmac("sha256", SESSION_SECRET)
@@ -288,7 +198,6 @@ function sessionToken() {
   return `${payload}.${signed(payload)}`;
 }
 
-// Owner authentication
 function isOwner(req) {
   if (SESSION_SECRET.length < 32) {
     return false;
@@ -302,15 +211,11 @@ function isOwner(req) {
     .find((x) => x.startsWith(COOKIE + "="))
     ?.slice(COOKIE.length + 1);
 
-  if (!token) {
-    return false;
-  }
+  if (!token) return false;
 
   const [payload, signature] = token.split(".");
 
-  if (!payload || !signature) {
-    return false;
-  }
+  if (!payload || !signature) return false;
 
   const expected = Buffer.from(signed(payload));
   const actual = Buffer.from(signature);
@@ -341,34 +246,162 @@ function owner(req, res, next) {
   next();
 }
 
-// Image upload
-const storage = multer.diskStorage({
-  destination: uploadDir,
+// --------------------------------------------------
+// MIDDLEWARE
+// --------------------------------------------------
 
-  filename: (_req, file, cb) => {
-    const ext =
-      {
-        "image/jpeg": ".jpg",
-        "image/png": ".png",
-        "image/webp": ".webp",
-        "image/gif": ".gif",
-        "image/avif": ".avif",
-      }[file.mimetype] || ".jpg";
+app.use(express.json({ limit: "1mb" }));
 
-    cb(null, `${Date.now()}-${crypto.randomBytes(8).toString("hex")}${ext}`);
-  },
+app.use("/api", (req, res, next) => {
+  res.setHeader("Cache-Control", "no-store");
+  next();
 });
+
+app.use("/api", rateLimit({ windowMs: 60000, max: 180 }));
+
+// Legacy local uploads remain accessible if files still exist.
+// New uploads are stored on Cloudinary.
+const uploadDir = path.join(root, "public", "uploads");
+await fs.mkdir(uploadDir, { recursive: true });
+
+app.use(
+  "/uploads",
+  express.static(uploadDir, {
+    maxAge: "7d",
+    setHeaders(res) {
+      res.setHeader("X-Content-Type-Options", "nosniff");
+    },
+  }),
+);
+
+// --------------------------------------------------
+// MONGODB CONNECTION
+// --------------------------------------------------
+
+let dbPromise;
+
+async function connectDB() {
+  if (!process.env.MONGODB_URI) {
+    throw new Error("MONGODB_URI is missing. Add it to environment variables.");
+  }
+
+  if (mongoose.connection.readyState === 1) {
+    return;
+  }
+
+  if (!dbPromise) {
+    dbPromise = mongoose
+      .connect(process.env.MONGODB_URI, {
+        serverSelectionTimeoutMS: 7000,
+        maxPoolSize: 20,
+        minPoolSize: 2,
+        maxIdleTimeMS: 30000,
+        retryWrites: true,
+      })
+      .catch((err) => {
+        dbPromise = null;
+        throw err;
+      });
+  }
+
+  await dbPromise;
+}
+
+// --------------------------------------------------
+// DATABASE MODELS
+// --------------------------------------------------
+
+const Content =
+  mongoose.models.NidhiContent ||
+  mongoose.model(
+    "NidhiContent",
+    new mongoose.Schema(
+      {
+        key: { type: String, unique: true },
+        value: mongoose.Schema.Types.Mixed,
+      },
+      { timestamps: true },
+    ),
+  );
+
+const eventSchema = new mongoose.Schema(
+  {
+    day: String,
+    type: String,
+    key: String,
+    count: { type: Number, default: 0 },
+  },
+  { versionKey: false },
+);
+
+eventSchema.index({ day: 1, type: 1, key: 1 }, { unique: true });
+
+eventSchema.index({ day: -1 });
+
+const Event =
+  mongoose.models.NidhiEvent || mongoose.model("NidhiEvent", eventSchema);
+
+// --------------------------------------------------
+// WEBSITE CONTENT
+// --------------------------------------------------
+
+async function getContent() {
+  await connectDB();
+
+  let doc = await Content.findOne({ key: "public" }).lean();
+
+  if (!doc) {
+    doc = await Content.create({
+      key: "public",
+      value: seed,
+    });
+
+    return doc.value;
+  }
+
+  const saved = doc.value || {};
+
+  return {
+    ...seed,
+    ...saved,
+    copy: {
+      ...(seed.copy || {}),
+      ...(saved.copy || {}),
+    },
+    qualities: saved.qualities || seed.qualities,
+    pollOptions: saved.pollOptions || seed.pollOptions,
+    keepsakeDetails: saved.keepsakeDetails || seed.keepsakeDetails,
+  };
+}
+
+// --------------------------------------------------
+// IMAGE UPLOAD CONFIGURATION
+// --------------------------------------------------
 
 const upload = multer({
-  storage,
-  limits: { fileSize: 8 * 1024 * 1024 },
+  storage: multer.memoryStorage(),
+
+  limits: {
+    fileSize: 8 * 1024 * 1024,
+  },
 
   fileFilter: (_req, file, cb) => {
-    cb(null, /^image\/(jpeg|png|webp|gif|avif)$/.test(file.mimetype));
+    const valid = /^image\/(jpeg|png|webp|gif|avif)$/.test(file.mimetype);
+
+    if (!valid) {
+      return cb(
+        new Error("Invalid image format. Use JPG, PNG, WEBP, GIF or AVIF."),
+      );
+    }
+
+    cb(null, true);
   },
 });
 
-// Health check
+// --------------------------------------------------
+// HEALTH CHECK
+// --------------------------------------------------
+
 app.get("/api/health", async (_req, res) => {
   try {
     await connectDB();
@@ -376,7 +409,8 @@ app.get("/api/health", async (_req, res) => {
     res.json({
       ok: true,
       database: "MongoDB Atlas",
-      mode: "production",
+      mode: isProduction ? "production" : "local",
+      imageStorage: cloudinaryReady ? "Cloudinary" : "not-configured",
     });
   } catch (e) {
     console.error("[health]", e.message);
@@ -390,7 +424,10 @@ app.get("/api/health", async (_req, res) => {
   }
 });
 
-// Public website content
+// --------------------------------------------------
+// PUBLIC WEBSITE CONTENT
+// --------------------------------------------------
+
 app.get("/api/content", async (_req, res) => {
   try {
     res.json(await getContent());
@@ -403,7 +440,10 @@ app.get("/api/content", async (_req, res) => {
   }
 });
 
-// Analytics events
+// --------------------------------------------------
+// ANALYTICS EVENTS
+// --------------------------------------------------
+
 app.post(
   "/api/events",
   sameOrigin,
@@ -412,9 +452,12 @@ app.post(
     try {
       const allowed = {
         section_view: ["home", "gallery", "appreciation", "keepsakes", "note"],
+
         style_preference: ["indian", "western", "floral", "minimal", "all"],
+
         letter_open: ["all"],
         compliment_refresh: ["all"],
+
         feedback_choice: [
           "beautiful",
           "liked_photos",
@@ -430,7 +473,9 @@ app.post(
         type === "photo_favorite" && /^slot-[1-9][0-9]?$/.test(key || "");
 
       if (!Object.hasOwn(allowed, type) && !validPhoto) {
-        return res.status(400).json({ error: "Invalid event" });
+        return res.status(400).json({
+          error: "Invalid event",
+        });
       }
 
       if (allowed[type] && !allowed[type].includes(key)) {
@@ -466,7 +511,10 @@ app.post(
   },
 );
 
-// Admin login
+// --------------------------------------------------
+// ADMIN LOGIN
+// --------------------------------------------------
+
 app.post(
   "/api/admin/login",
   sameOrigin,
@@ -515,7 +563,10 @@ app.post(
   },
 );
 
-// Admin logout
+// --------------------------------------------------
+// ADMIN LOGOUT
+// --------------------------------------------------
+
 app.post("/api/admin/logout", sameOrigin, (_req, res) => {
   res.setHeader(
     "Set-Cookie",
@@ -525,7 +576,10 @@ app.post("/api/admin/logout", sameOrigin, (_req, res) => {
   res.json({ ok: true });
 });
 
-// Analytics summary
+// --------------------------------------------------
+// ADMIN ANALYTICS SUMMARY
+// --------------------------------------------------
+
 app.get("/api/admin/summary", owner, async (_req, res) => {
   try {
     await connectDB();
@@ -574,6 +628,7 @@ app.get("/api/admin/summary", owner, async (_req, res) => {
       favorites: by("photo_favorite"),
       styles: by("style_preference"),
       feedback: by("feedback_choice"),
+
       daily: daily.map((x) => ({
         label: x._id,
         count: x.count,
@@ -588,7 +643,10 @@ app.get("/api/admin/summary", owner, async (_req, res) => {
   }
 });
 
-// Admin content read
+// --------------------------------------------------
+// ADMIN CONTENT READ
+// --------------------------------------------------
+
 app.get("/api/admin/content", owner, async (_req, res) => {
   try {
     res.json(await getContent());
@@ -601,7 +659,10 @@ app.get("/api/admin/content", owner, async (_req, res) => {
   }
 });
 
-// Admin content save
+// --------------------------------------------------
+// ADMIN CONTENT SAVE / PUBLISH
+// --------------------------------------------------
+
 app.put("/api/admin/content", sameOrigin, owner, async (req, res) => {
   const c = req.body;
 
@@ -701,27 +762,56 @@ app.put("/api/admin/content", sameOrigin, owner, async (req, res) => {
   }
 });
 
-// Admin image upload
+// --------------------------------------------------
+// ADMIN IMAGE UPLOAD — CLOUDINARY
+// --------------------------------------------------
+
 app.post(
   "/api/admin/upload",
   sameOrigin,
   owner,
   upload.single("image"),
-  (req, res) => {
-    if (!req.file) {
-      return res.status(400).json({
-        error: "Choose a valid image (JPG, PNG, WEBP, GIF, AVIF), max 8 MB.",
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          error: "Choose a valid image (JPG, PNG, WEBP, GIF, AVIF), max 8 MB.",
+        });
+      }
+
+      if (!cloudinaryReady) {
+        return res.status(503).json({
+          error: "Cloudinary credentials are not configured on the server.",
+        });
+      }
+
+      const dataUri =
+        `data:${req.file.mimetype};base64,` +
+        req.file.buffer.toString("base64");
+
+      const result = await cloudinary.uploader.upload(dataUri, {
+        folder: "nidhi-little-world",
+        resource_type: "image",
+      });
+
+      return res.json({
+        ok: true,
+        url: result.secure_url,
+      });
+    } catch (error) {
+      console.error("[cloudinary upload]", error.message);
+
+      return res.status(500).json({
+        error: "Image upload failed. Please try again.",
       });
     }
-
-    res.json({
-      ok: true,
-      url: `/uploads/${req.file.filename}`,
-    });
   },
 );
 
-// Analytics CSV export
+// --------------------------------------------------
+// ADMIN ANALYTICS CSV EXPORT
+// --------------------------------------------------
+
 app.get("/api/admin/export", owner, async (_req, res) => {
   try {
     await connectDB();
@@ -730,6 +820,7 @@ app.get("/api/admin/export", owner, async (_req, res) => {
 
     const csv = [
       "day,type,key,count",
+
       ...rows.map((x) =>
         [
           x.day,
@@ -748,19 +839,28 @@ app.get("/api/admin/export", owner, async (_req, res) => {
   }
 });
 
-// Error handler
+// --------------------------------------------------
+// ERROR HANDLER
+// --------------------------------------------------
+
 app.use((err, _req, res, _next) => {
   console.error("[server]", err.message);
 
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({
+      error: "Image upload failed. Maximum file size is 8 MB.",
+    });
+  }
+
   res.status(400).json({
-    error:
-      err instanceof multer.MulterError
-        ? "Image upload failed. Maximum file size is 8 MB."
-        : "Request failed. Check the submitted data.",
+    error: "Request failed. Check the submitted data.",
   });
 });
 
-// Production frontend hosting
+// --------------------------------------------------
+// PRODUCTION FRONTEND HOSTING
+// --------------------------------------------------
+
 if (isProduction) {
   const dist = path.join(root, "dist");
 
@@ -768,6 +868,7 @@ if (isProduction) {
     express.static(dist, {
       maxAge: "1y",
       immutable: true,
+
       setHeaders(res, file) {
         if (file.endsWith("index.html")) {
           res.setHeader("Cache-Control", "no-cache");
@@ -785,7 +886,13 @@ if (isProduction) {
   });
 }
 
-// Start server
+// --------------------------------------------------
+// START SERVER
+// --------------------------------------------------
+
 app.listen(PORT, () => {
   console.log(`Nidhi Express server ready on port ${PORT}`);
+  console.log(
+    `Image storage: ${cloudinaryReady ? "Cloudinary" : "NOT CONFIGURED"}`,
+  );
 });
