@@ -14,7 +14,7 @@ if (process.argv.includes("--production")) process.env.NODE_ENV = "production";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
 const app = express();
-const PORT = Number(process.env.API_PORT || 4000);
+const PORT = Number(process.env.PORT || process.env.API_PORT || 4000);
 const isProduction = process.env.NODE_ENV === "production";
 app.disable("x-powered-by");
 app.use((req, res, next) => {
@@ -240,14 +240,12 @@ app.get("/api/health", async (_req, res) => {
     res.json({ ok: true, database: "MongoDB Atlas", mode: "local-express" });
   } catch (e) {
     console.error("[health]", e.message);
-    res
-      .status(503)
-      .json({
-        ok: false,
-        error: e.message.includes("MONGODB_URI")
-          ? e.message
-          : "MongoDB connection failed. Check URI, password encoding and Atlas IP access.",
-      });
+    res.status(503).json({
+      ok: false,
+      error: e.message.includes("MONGODB_URI")
+        ? e.message
+        : "MongoDB connection failed. Check URI, password encoding and Atlas IP access.",
+    });
   }
 });
 app.get("/api/content", async (_req, res) => {
@@ -462,12 +460,10 @@ app.put("/api/admin/content", sameOrigin, owner, async (req, res) => {
         ),
     );
   if (!valid)
-    return res
-      .status(400)
-      .json({
-        error:
-          "Invalid content. Check text lengths and keep the 15 photo slots, 3 appreciation cards and 2 poster slots.",
-      });
+    return res.status(400).json({
+      error:
+        "Invalid content. Check text lengths and keep the 15 photo slots, 3 appreciation cards and 2 poster slots.",
+    });
   try {
     await connectDB();
     await Content.updateOne(
@@ -488,11 +484,9 @@ app.post(
   upload.single("image"),
   (req, res) => {
     if (!req.file)
-      return res
-        .status(400)
-        .json({
-          error: "Choose a valid image (JPG, PNG, WEBP, GIF, AVIF), max 8 MB.",
-        });
+      return res.status(400).json({
+        error: "Choose a valid image (JPG, PNG, WEBP, GIF, AVIF), max 8 MB.",
+      });
     res.json({ ok: true, url: `/uploads/${req.file.filename}` });
   },
 );
@@ -519,14 +513,12 @@ app.get("/api/admin/export", owner, async (_req, res) => {
 });
 app.use((err, _req, res, _next) => {
   console.error("[server]", err.message);
-  res
-    .status(400)
-    .json({
-      error:
-        err instanceof multer.MulterError
-          ? "Image upload failed. Maximum file size is 8 MB."
-          : "Request failed. Check the submitted data.",
-    });
+  res.status(400).json({
+    error:
+      err instanceof multer.MulterError
+        ? "Image upload failed. Maximum file size is 8 MB."
+        : "Request failed. Check the submitted data.",
+  });
 });
 if (isProduction) {
   const dist = path.join(root, "dist");
