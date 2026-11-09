@@ -1,0 +1,18 @@
+node_modules/
+dist/
+.env
+.env.local
+.vercel/
+.DS_Store
+
+# User-uploaded images (local only; use object storage in production)
+public/uploads/
+npm-debug.log*
+
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store

@@ -1,0 +1,236 @@
+{
+  "photos": [
+    {
+      "src": "/images/nidhi-original.jpg",
+      "title": "The original frame",
+      "kind": "Original photo",
+      "caption": "A lovely moment, just as it is.",
+      "alt": "The original frame"
+    },
+    {
+      "src": "/images/portrait-01-black-top.jpg",
+      "title": "Soft indoor portrait",
+      "kind": "AI-created portrait",
+      "caption": "A creative style portrait, made for this little collection.",
+      "alt": "Soft indoor portrait"
+    },
+    {
+      "src": "/images/portrait-02-garden-black.jpg",
+      "title": "Garden light",
+      "kind": "AI-created portrait",
+      "caption": "A creative style portrait, made for this little collection.",
+      "alt": "Garden light"
+    },
+    {
+      "src": "/images/portrait-03-window-black.jpg",
+      "title": "Window-side moment",
+      "kind": "AI-created portrait",
+      "caption": "A creative style portrait, made for this little collection.",
+      "alt": "Window-side moment"
+    },
+    {
+      "src": "/images/portrait-04-garden-casual.jpg",
+      "title": "A quiet afternoon",
+      "kind": "AI-created portrait",
+      "caption": "A creative style portrait, made for this little collection.",
+      "alt": "A quiet afternoon"
+    },
+    {
+      "src": "/images/portrait-05-street-casual.jpg",
+      "title": "A little city stroll",
+      "kind": "AI-created portrait",
+      "caption": "A creative style portrait, made for this little collection.",
+      "alt": "A little city stroll"
+    },
+    {
+      "src": "/images/portrait-06-cafe-black.jpg",
+      "title": "Coffee and calm",
+      "kind": "AI-created portrait",
+      "caption": "A creative style portrait, made for this little collection.",
+      "alt": "Coffee and calm"
+    },
+    {
+      "src": "/images/portrait-07-blue-ivory.jpg",
+      "title": "Soft blue and ivory",
+      "kind": "AI-created portrait",
+      "caption": "A creative style portrait, made for this little collection.",
+      "alt": "Soft blue and ivory"
+    },
+    {
+      "src": "/images/portrait-08-cream-blazer.jpg",
+      "title": "Modern minimal",
+      "kind": "AI-created portrait",
+      "caption": "A creative style portrait, made for this little collection.",
+      "alt": "Modern minimal"
+    },
+    {
+      "src": "/images/portrait-09-plum-ethnic.jpg",
+      "title": "Plum and champagne",
+      "kind": "AI-created portrait",
+      "caption": "A creative style portrait, made for this little collection.",
+      "alt": "Plum and champagne"
+    },
+    {
+      "src": "/images/portrait-10-pink-anarkali.jpg",
+      "title": "Blush embroidered",
+      "kind": "AI-created portrait",
+      "caption": "A creative style portrait, made for this little collection.",
+      "alt": "Blush embroidered"
+    },
+    {
+      "src": "/images/portrait-11-pink-floral.jpg",
+      "title": "Under the blossoms",
+      "kind": "AI-created portrait",
+      "caption": "A creative style portrait, made for this little collection.",
+      "alt": "Under the blossoms"
+    },
+    {
+      "src": "/images/portrait-12-sage-saree.jpg",
+      "title": "Sage garden",
+      "kind": "AI-created portrait",
+      "caption": "A creative style portrait, made for this little collection.",
+      "alt": "Sage garden"
+    },
+    {
+      "src": "/images/portrait-13-lilac-cafe.jpg",
+      "title": "Lilac café afternoon",
+      "kind": "AI-created portrait",
+      "caption": "A creative style portrait, made for this little collection.",
+      "alt": "Lilac café afternoon"
+    },
+    {
+      "src": "/images/portrait-14-lavender-satin.jpg",
+      "title": "Lavender satin",
+      "kind": "AI-created portrait",
+      "caption": "A creative style portrait, made for this little collection.",
+      "alt": "Lavender satin"
+    }
+  ],
+  "quotes": [
+    "Your individuality is something worth appreciating.",
+    "There is something lovely about the way you carry yourself.",
+    "You deserve good things, calm days, and genuine happiness.",
+    "Never underestimate the quiet impact of being yourself.",
+    "Your smile can make an ordinary moment feel a little brighter.",
+    "Keep growing at your own pace. You are doing just fine.",
+    "The little things that make you different are worth celebrating.",
+    "You do not have to be perfect to be wonderful."
+  ],
+  "keepsakeImages": [
+    "/keepsakes/birthday-artwork.jpg",
+    "/keepsakes/film-poster-artwork.jpg"
+  ],
+  "copy": {
+    "siteName": "Nidhi Little World",
+    "welcomeEyebrow": "A LITTLE SOMETHING, JUST FOR YOU",
+    "welcomeScript": "a little world for",
+    "welcomeName": "Nidhi",
+    "welcomeDescription": "A small collection of lovely moments, kind thoughts, and a little appreciation.",
+    "welcomeButton": "Step inside",
+    "welcomeFooter": "MADE WITH CARE · 2026",
+    "navGallery": "Gallery",
+    "navAppreciation": "Appreciation",
+    "navNote": "A note",
+    "heroEyebrow": "A LITTLE PAGE, MADE WITH APPRECIATION",
+    "heroTitle": "Some people make\\nordinary days feel\\na little brighter.",
+    "heroDescription": "This is a tiny corner of the internet to celebrate the lovely things that make you, you. No big occasion needed.",
+    "heroLink": "TAKE A LITTLE LOOK",
+    "heroStamp": "a lovely\\nmoment",
+    "heroFloatOne": "a little sunshine ✿",
+    "heroFloatTwo": "simply you",
+    "heroIndex": "A LITTLE INTRO",
+    "galleryEyebrow": "THE PHOTO CORNER · 01",
+    "galleryTitle": "A gallery of little\\nlovely things.",
+    "galleryDescription": "Different looks, different moods — one little collection made to feel warm, thoughtful, and full of colour.",
+    "gallerySliderLabel": "15 MOMENTS · DRAG TO EXPLORE",
+    "galleryNote": "A CREATIVE COLLECTION · ORIGINAL PHOTO IS IDENTIFIED SEPARATELY",
+    "favoriteButton": "My favourite",
+    "appreciationEyebrow": "A FEW THINGS WORTH CELEBRATING · 02",
+    "appreciationTitle": "Never forget how lovely\\nit is to be you.",
+    "complimentFallback": "Tap below for a little reminder you deserve to hear.",
+    "complimentButton": "A little reminder",
+    "pollEyebrow": "A TINY OPTIONAL QUESTION",
+    "pollTitle": "Which style do you like most?",
+    "pollDescription": "Pick a favourite if you feel like it. Your choice is counted only if you opted into anonymous analytics.",
+    "keepsakeEyebrow": "LITTLE KEEPSAKES · 03",
+    "keepsakeTitle": "Some things are\\nworth keeping.",
+    "keepsakeDescription": "A couple of creative poster-style keepsakes from the collection. A little colour, a little nostalgia, and a lot of care.",
+    "letterEyebrow": "A NOTE, JUST BECAUSE · 04",
+    "letterTitle": "A little note\\nfor you, Nidhi.",
+    "letterDescription": "Not a big speech. Just a few genuine words, wrapped up with care.",
+    "letterModalEyebrow": "A SMALL NOTE FOR YOU",
+    "letterGreeting": "Hey Nidhi,",
+    "letterParagraphOne": "I wanted to make something a little different instead of sending an ordinary message.",
+    "letterParagraphTwo": "This is simply a small way of appreciating you. Your individuality and the little things that make you who you are deserve to be celebrated.",
+    "letterParagraphThree": "I hope this little surprise brings a smile to your face. Keep being yourself, keep growing, and never forget that you deserve kindness and happiness.",
+    "letterSignoff": "With appreciation,",
+    "letterSignature": "someone who thinks you're pretty wonderful.",
+    "letterClose": "Close this note",
+    "feedbackPrompt": "Before you go, how did this little page feel?",
+    "feedbackBeautiful": "Beautiful",
+    "feedbackPhotos": "Loved the photos",
+    "feedbackLetter": "The note was my favourite",
+    "feedbackDesign": "Loved the design",
+    "feedbackNotForMe": "Not quite my style",
+    "feedbackDisclaimer": "Optional · No message or personal details are collected.",
+    "footerEyebrow": "A LITTLE REMINDER TO TAKE WITH YOU",
+    "footerTitle": "Keep being\\nwonderfully you.",
+    "footerDescription": "Wishing you more reasons to smile, more moments to cherish, and all the good things you deserve.",
+    "footerSignature": "made with appreciation",
+    "privacyButton": "Privacy settings",
+    "footerCopyright": "A LITTLE WORLD FOR NIDHI · 2026",
+    "musicButton": "Music",
+    "musicPause": "Pause"
+  },
+  "qualities": [
+    {
+      "number": "01 /",
+      "title": "Your individuality",
+      "description": "There is no one else quite like you. That's a pretty wonderful thing."
+    },
+    {
+      "number": "02 /",
+      "title": "Your smile",
+      "description": "A small reminder that simple things can brighten an ordinary day."
+    },
+    {
+      "number": "03 /",
+      "title": "Your own pace",
+      "description": "Keep becoming who you want to be. Your journey is yours alone."
+    }
+  ],
+  "pollOptions": [
+    {
+      "key": "indian",
+      "label": "Indian traditional"
+    },
+    {
+      "key": "western",
+      "label": "Western looks"
+    },
+    {
+      "key": "floral",
+      "label": "Floral aesthetic"
+    },
+    {
+      "key": "minimal",
+      "label": "Minimal & elegant"
+    },
+    {
+      "key": "all",
+      "label": "A mix of everything"
+    }
+  ],
+  "keepsakeDetails": [
+    {
+      "title": "Birthday keepsake",
+      "alt": "Birthday poster artwork",
+      "description": "A birthday-inspired poster from the collection."
+    },
+    {
+      "title": "Film poster",
+      "alt": "Film poster artwork",
+      "description": "A cinematic keepsake from the collection."
+    }
+  ]
+}
