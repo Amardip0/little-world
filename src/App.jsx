@@ -9,6 +9,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
+import { Analytics } from "@vercel/analytics/react";
 
 import { photos } from "./data/photos";
 import { compliments as defaultCompliments } from "./data/compliments";
@@ -1133,9 +1134,14 @@ function PublicSite() {
 }
 
 export default function App() {
-  return window.location.pathname.startsWith("/owner-dashboard") ? (
-    <OwnerDashboard />
-  ) : (
-    <PublicSite />
+  return (
+    <>
+      {window.location.pathname.startsWith("/owner-dashboard") ? (
+        <OwnerDashboard />
+      ) : (
+        <PublicSite />
+      )}
+      <Analytics />
+    </>
   );
 }
