@@ -12,6 +12,7 @@
     "start": "npm run build && node server/index.js --production"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.11.0",
     "dotenv": "^16.4.7",
